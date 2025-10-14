@@ -1,0 +1,6 @@
+/* Extra CSS (fallback already inline in HTML) */
+:root{
+  --brand:#0b7285;
+}
+a{color:var(--brand)}
+.badge{display:inline-block;padding:2px 6px;border-radius:6px;background:#e3fafc;border:1px solid #c5f6fa}
