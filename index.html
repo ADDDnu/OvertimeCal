@@ -3,240 +3,98 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OT Calculator – Monthly/Yearly</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="data:,">
-  <meta name="theme-color" content="#0b7285" />
+  <title>OT Calculator – บันทึกเวลา</title>
   <style>
-    /* Fallback minimal styles if style.css not loaded */
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#0b72850d;margin:0;color:#0b2b33}
-    header{position:sticky;top:0;background:#0b7285;color:#fff;padding:10px 16px;z-index:10}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#f6f8fa;margin:0;color:#0b2b33}
+    header{background:#0b7285;color:#fff;padding:10px 16px}
     header h1{margin:0;font-size:18px}
-    .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px}
-    .tab-btn{border:none;background:#dff3f8;color:#0b2b33;padding:8px 12px;border-radius:10px;cursor:pointer}
-    .tab-btn.active{background:#0b7285;color:#fff}
-    main{padding:12px}
-    section{display:none}
-    section.active{display:block}
-    .card{background:#fff;border-radius:12px;padding:12px;border:1px solid #e6f4f7;margin-bottom:12px}
-    h2{font-size:16px;margin:0 0 8px 0}
-    label{display:block;margin:8px 0 4px 0}
-    input,select,button,textarea{font:inherit;padding:8px;border-radius:8px;border:1px solid #cde7ec}
-    input[type="number"]{width:110px}
-    table{width:100%;border-collapse:collapse}
-    th,td{border-bottom:1px solid #eef5f7;padding:6px;text-align:left}
-    tr:hover{background:#f5fbfc}
-    .grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .right{margin-left:auto}
-    .muted{color:#567}
-    .chip{display:inline-block;background:#eef7f9;padding:2px 8px;border-radius:999px;border:1px solid #d6eef2;margin:2px 4px 0 0;font-size:12px}
-    .danger{background:#ffe3e3;border-color:#ffc9c9;color:#842029}
-    .ok{background:#e6fcf5;border-color:#c3fae8;color:#0b5137}
-    .nowrap{white-space:nowrap}
-    .totals{font-weight:600}
-    canvas{max-width:100%;}
-    .btn{background:#0b7285;color:#fff;border:none;cursor:pointer}
-    .btn.secondary{background:#1971c2}
-    .btn.ghost{background:#e3fafc;color:#0b2b33}
-    .btn.warn{background:#e67700}
-    footer{padding:16px;text-align:center;color:#456}
-    .small{font-size:12px}
-    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;background:#f1f3f5;border:1px solid #dee2e6;border-radius:4px;padding:1px 5px}
+    main{padding:16px}
+    label{display:block;margin-top:10px}
+    input,button{font:inherit;padding:8px;border-radius:6px;border:1px solid #ccc}
+    button{background:#0b7285;color:#fff;border:none;cursor:pointer;margin-top:12px}
+    .checkbox-label{display:flex;align-items:center;gap:6px;margin-top:8px}
+    table{width:100%;border-collapse:collapse;margin-top:16px}
+    th,td{border-bottom:1px solid #ddd;padding:6px;text-align:center}
   </style>
 </head>
 <body>
   <header>
-    <h1>คำนวณโอที (OT) · สรุปรายเดือน/รายปี</h1>
+    <h1>บันทึกเวลาการทำงานโอที</h1>
   </header>
-
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="home">หน้าแรก</button>
-    <button class="tab-btn" data-tab="entry">บันทึกโอที</button>
-    <button class="tab-btn" data-tab="report">รายงาน</button>
-    <button class="tab-btn" data-tab="settings">ตั้งค่า & Backup</button>
-  </div>
-
   <main>
-    <!-- HOME -->
-    <section id="home" class="active">
-      <div class="card">
-        <h2>สรุปเดือนปัจจุบัน (<span id="home-month"></span>)</h2>
-        <div class="grid">
-          <div class="card">
-            <strong>ชั่วโมงรวม</strong>
-            <div id="home-hours-total" style="font-size:22px;margin-top:4px">0.00 h</div>
-            <div class="muted small">คิดตามกติกา: หลัง 16:00 ตัด 0.5 ชม. 1 ครั้ง/วัน</div>
-          </div>
-          <div class="card">
-            <strong>จำนวนเงินรวม</strong>
-            <div id="home-pay-total" style="font-size:22px;margin-top:4px">฿0</div>
-            <div class="small muted">อัตราปัจจุบัน: 1x=฿<span id="home-rate1"></span>, 1.5x=฿<span id="home-rate15"></span>, 3x=฿<span id="home-rate3"></span></div>
-          </div>
-          <div class="card">
-            <strong>แยกตามแรง</strong>
-            <div class="small">
-              <span class="chip">วันจันทร์–ศุกร์ = 1.5x: <span id="home-hours-15">0.00</span> h</span>
-              <span class="chip">เสาร์–อาทิตย์ = 1.0x: <span id="home-hours-1">0.00</span> h</span>
-              <span class="chip">แรง 3x (ระบุเอง): <span id="home-hours-3">0.00</span> h</span>
-            </div>
-          </div>
-        </div>
+    <div>
+      <label>วันที่</label>
+      <input type="date" id="work-date" />
+
+      <label>เวลาเริ่ม (ระบบ 24 ชั่วโมง)</label>
+      <input type="time" id="start-time" step="60" />
+
+      <label>เวลาสิ้นสุด (ระบบ 24 ชั่วโมง)</label>
+      <input type="time" id="end-time" step="60" />
+
+      <div class="checkbox-label">
+        <input type="checkbox" id="no-cut" />
+        <label for="no-cut">ตัด 30 นาที</label>
       </div>
 
-      <div class="card">
-        <div class="row">
-          <h2 style="margin:0">รายการเดือนนี้</h2>
-          <div class="right">
-            <button class="btn ghost" id="btnAddQuick">+ เพิ่มรายการ</button>
-          </div>
-        </div>
-        <div class="small muted">กดหัวตารางเพื่อจัดเรียง</div>
-        <div style="overflow:auto">
-          <table id="home-table">
-            <thead>
-              <tr>
-                <th>วันที่</th>
-                <th>เริ่ม</th>
-                <th>สิ้นสุด</th>
-                <th>ชั่วโมง</th>
-                <th>แรง</th>
-                <th>จำนวนเงิน</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+      <button id="save-btn">บันทึก</button>
 
-    <!-- ENTRY -->
-    <section id="entry">
-      <div class="card">
-        <h2>บันทึกโอที</h2>
-        <div class="grid">
-          <div>
-            <label>วันที่</label>
-            <input type="date" id="e-date" />
-          </div>
-          <div>
-            <label>เวลาเริ่ม</label>
-            <input type="time" id="e-start" />
-          </div>
-          <div>
-            <label>เวลาสิ้นสุด</label>
-            <input type="time" id="e-end" />
-          </div>
-          <div>
-            <label>แรง (ถ้าไม่เลือก ระบบจะคำนวณตามวัน)</label>
-            <select id="e-mult">
-              <option value="">อัตโนมัติ</option>
-              <option value="1">1x (ส-อา)</option>
-              <option value="1.5">1.5x (จ-ศ)</option>
-              <option value="3">3x (พิเศษ)</option>
-            </select>
-          </div>
-        </div>
-        <label>หมายเหตุ</label>
-        <input id="e-note" placeholder="เช่น ล่วงเวลาแก้บำรุงรักษา" />
-        <div class="row" style="margin-top:10px">
-          <button class="btn" id="e-save">บันทึก</button>
-          <button class="btn ghost" id="e-clear">ล้างฟอร์ม</button>
-        </div>
-        <div class="small muted" style="margin-top:8px">
-          กติกา: หากช่วงเวลามีส่วนที่เกิน 16:00 น. จะหักเวลาพัก 0.5 ชม. 1 ครั้ง/วันโดยอัตโนมัติ
-        </div>
-      </div>
+      <div id="result" style="margin-top:12px;font-weight:bold"></div>
+    </div>
 
-      <div class="card">
-        <h2>ข้อมูลทั้งหมด</h2>
-        <div class="row">
-          <input id="search" placeholder="ค้นหา (ข้อความ/หมายเหตุ)" style="flex:1" />
-          <button class="btn secondary" id="btnExport">Export JSON</button>
-          <input type="file" id="fileImport" style="display:none" />
-          <button class="btn ghost" id="btnImport">Import JSON</button>
-        </div>
-        <div style="overflow:auto;margin-top:8px">
-          <table id="entry-table">
-            <thead>
-              <tr>
-                <th>วันที่</th>
-                <th>เริ่ม</th>
-                <th>สิ้นสุด</th>
-                <th>ชั่วโมง(สุทธิ)</th>
-                <th>แรง</th>
-                <th>จำนวนเงิน</th>
-                <th>หมายเหตุ</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- REPORT -->
-    <section id="report">
-      <div class="card">
-        <h2>รายงานรายปี</h2>
-        <div class="row">
-          <label class="nowrap">เลือกปี</label>
-          <select id="r-year"></select>
-          <button class="btn" id="r-refresh">ดูรายงาน</button>
-        </div>
-        <div class="grid" style="margin-top:8px">
-          <div class="card">
-            <div class="totals">ชั่วโมงรวมปี <span id="r-year-label"></span>: <span id="r-hours">0.00</span> h</div>
-            <div>จำนวนเงินรวม: ฿<span id="r-pay">0</span></div>
-            <div class="small muted">แยกตามเดือน</div>
-          </div>
-        </div>
-        <canvas id="r-chart" height="220"></canvas>
-        <div class="small muted">* กราฟแท่งแสดงชั่วโมงโอทีของแต่ละเดือน</div>
-      </div>
-    </section>
-
-    <!-- SETTINGS -->
-    <section id="settings">
-      <div class="card">
-        <h2>ตั้งค่าอัตราค่าแรง</h2>
-        <div class="row">
-          <label>หนึ่งเท่า (บาท/ชั่วโมง)</label>
-          <input type="number" id="s-rate1" min="0" step="0.01" />
-          <div class="chip">1.5x: ฿<span id="s-rate15">0</span>/ชม.</div>
-          <div class="chip">3x: ฿<span id="s-rate3">0</span>/ชม.</div>
-        </div>
-        <div class="small muted">ระบบจะคำนวณ 1.5x และ 3x อัตโนมัติจาก 1x</div>
-        <div class="row" style="margin-top:8px">
-          <button class="btn" id="s-save">บันทึกอัตรา</button>
-          <button class="btn ghost" id="s-reset">ค่าเริ่มต้น</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>สำรองข้อมูล (Backup)</h2>
-        <div class="row">
-          <button class="btn secondary" id="s-export">Export ข้อมูลทั้งหมด (.json)</button>
-          <input type="file" id="s-import-file" style="display:none" />
-          <button class="btn ghost" id="s-import">นำเข้าไฟล์ (.json)</button>
-        </div>
-        <div class="small muted">ข้อมูลเก็บไว้ในเครื่อง (LocalStorage) และสามารถสำรอง/กู้คืนเป็นไฟล์ JSON ได้</div>
-      </div>
-
-      <div class="card">
-        <h2>เกี่ยวกับ</h2>
-        <div class="small">
-          สร้างเพื่อคำนวณโอที พร้อมสรุปรายเดือน/ปี · ทำงานออฟไลน์ · ไม่ส่งข้อมูลออกนอกเครื่อง
-        </div>
-      </div>
-    </section>
+    <table id="records">
+      <thead>
+        <tr><th>วันที่</th><th>เริ่ม</th><th>สิ้นสุด</th><th>ชั่วโมงรวม</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </main>
+  <script>
+    const saveBtn = document.getElementById('save-btn');
+    const resultDiv = document.getElementById('result');
+    const tableBody = document.querySelector('#records tbody');
 
-  <footer class="small">© 2025 OT Calculator · ทำงานออฟไลน์ · LocalStorage</footer>
+    function parseTime(t){
+      const [h,m] = t.split(':').map(Number);
+      return h*60+m;
+    }
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js"></script>
+    saveBtn.onclick = ()=>{
+      const dateEl = document.getElementById('work-date');
+      const startEl = document.getElementById('start-time');
+      const endEl = document.getElementById('end-time');
+      const noCutEl = document.getElementById('no-cut');
+
+      const date = dateEl.value;
+      const start = startEl.value;
+      const end = endEl.value;
+      const noCut = noCutEl.checked;
+
+      if(!date || !start || !end){
+        alert('กรุณากรอกข้อมูลให้ครบ');
+        return;
+      }
+
+      let startMin = parseTime(start);
+      let endMin = parseTime(end);
+      let totalMin = endMin - startMin;
+      if(totalMin < 0) totalMin += 24*60; // ข้ามวัน
+      if(!noCut && totalMin >= 30) totalMin -= 30; // หัก 30 นาที
+
+      const hours = (totalMin/60).toFixed(2);
+      resultDiv.textContent = `รวมเวลา: ${hours} ชั่วโมง`;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${new Date(date).toLocaleDateString('th-TH')}</td><td>${start}</td><td>${end}</td><td>${hours}</td>`;
+      tableBody.appendChild(tr);
+
+      // ล้างค่าหลังบันทึก
+      dateEl.value = '';
+      startEl.value = '';
+      endEl.value = '';
+      noCutEl.checked = false;
+      setTimeout(()=>{ resultDiv.textContent = ''; }, 2000);
+    }
+  </script>
 </body>
 </html>
