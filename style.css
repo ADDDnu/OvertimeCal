@@ -4,3 +4,11 @@
 }
 a{color:var(--brand)}
 .badge{display:inline-block;padding:2px 6px;border-radius:6px;background:#e3fafc;border:1px solid #c5f6fa}
+
+/* Calendar styles */
+.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:8px}
+.calendar-grid .wday{font-weight:600;text-align:center;color:#345;background:#f1f5f9;border:1px solid #e9ecef;border-radius:8px;padding:6px}
+.calendar-grid .cell{background:#fff;border:1px solid #e9ecef;border-radius:8px;min-height:64px;padding:6px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start}
+.calendar-grid .cell .d{font-weight:600}
+.calendar-grid .cell .h{font-size:12px;color:#567;margin-top:2px}
+.calendar-grid .cell.today{background:#e3fafc;border-color:#0b7285;box-shadow:0 0 0 1px #0b728555 inset}

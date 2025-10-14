@@ -80,6 +80,22 @@
     return hours * r;
   }
 
+  function computeHoursFlexible(entry){
+    // If entry has explicit noCut flag (true => DO NOT cut 30 min, false => cut 30 if >=30)
+    if(Object.prototype.hasOwnProperty.call(entry,'noCut')){
+      const mStart = parseTimeStr(entry.start);
+      const mEnd = parseTimeStr(entry.end);
+      let totalMin = mEnd - mStart;
+      if(totalMin < 0) totalMin += 24*60; // allow crossing midnight
+      if(!entry.noCut && totalMin >= 30) totalMin -= 30;
+      return { hoursNet: totalMin/60 };
+    }
+    // Fallback to legacy behavior
+    const {hoursNet} = computeHours(entry.date, entry.start, entry.end);
+    return { hoursNet };
+  }
+
+
   // --- DOM setup ---
   qa('.tab-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
@@ -95,6 +111,48 @@
   });
 
   // --- Home ---
+
+    // --- Calendar (Home) ---
+    function renderHomeCalendar(monthEntries){
+      const cal = q('#home-calendar'); if(!cal) return;
+      cal.innerHTML = '';
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const first = new Date(year, month, 1);
+      const startDay = (first.getDay()+7)%7; // Sunday start
+      const daysInMonth = new Date(year, month+1, 0).getDate();
+      const monthName = new Date(year, month, 1).toLocaleDateString('th-TH',{year:'numeric',month:'long'});
+      const calMonthLabel = q('#cal-month'); if(calMonthLabel) calMonthLabel.textContent = monthName;
+
+      // weekday header
+      const names = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+      for(const n of names){
+        const h = document.createElement('div'); h.className='wday'; h.textContent=n; cal.appendChild(h);
+      }
+
+      // empty cells before first day
+      for(let i=0;i<startDay;i++){ const c=document.createElement('div'); c.className='cell empty'; cal.appendChild(c); }
+
+      // aggregate hours per day
+      const perDay = {};
+      for(const e of monthEntries){
+        const d = new Date(e.date+'T00:00:00');
+        const dd = d.getDate();
+        const {hoursNet} = computeHoursFlexible(e);
+        perDay[dd] = (perDay[dd]||0) + hoursNet;
+      }
+
+      for(let d=1; d<=daysInMonth; d++){
+        const c = document.createElement('div'); c.className='cell';
+        if(d===today.getDate()) c.classList.add('today');
+        const dn = document.createElement('div'); dn.className='d'; dn.textContent = d;
+        const hv = document.createElement('div'); hv.className='h'; hv.textContent = 'OT ' + (Math.round((perDay[d]||0)*100)/100).toFixed(2) + ' ชม.';
+        c.appendChild(dn); c.appendChild(hv);
+        cal.appendChild(c);
+      }
+    }
+
   function renderHome(){
     const entries = loadEntries();
     const settings = loadSettings();
@@ -118,7 +176,7 @@
     monthEntries.sort((a,b)=> (a.date+a.start).localeCompare(b.date+b.start));
     for(const e of monthEntries){
       const mult = e.mult || weekdayMultiplier(e.date);
-      const {hoursNet} = computeHours(e.date, e.start, e.end);
+      const {hoursNet} = computeHoursFlexible(e);
       const pay = payFor(hoursNet, mult, settings.rate1);
       totalHours += hoursNet;
       totalPay += pay;
@@ -140,6 +198,8 @@
     q('#home-hours-1').textContent = fmtNum(h1);
     q('#home-hours-15').textContent = fmtNum(h15);
     q('#home-hours-3').textContent = fmtNum(h3);
+
+    renderHomeCalendar(monthEntries);
 
     tb.querySelectorAll('.btnDel').forEach(b=> b.addEventListener('click', ()=>{
       const id = b.dataset.id;
@@ -188,6 +248,7 @@
     const start = q('#e-start').value;
     const end = q('#e-end').value;
     const multStr = q('#e-mult').value;
+    const noCut = q('#e-no-cut') ? q('#e-no-cut').checked : false;
     const note = q('#e-note').value.trim();
     if(!date || !start || !end){
       alert('กรุณากรอกวันที่/เวลาให้ครบ');
@@ -197,9 +258,15 @@
 
     const entries = loadEntries();
     const id = Date.now();
-    entries.push({ id, date, start, end, mult, note });
+    entries.push({ id, date, start, end, mult, note, noCut });
     saveEntries(entries);
     drawEntryTable();
+    // clear form after save
+    q('#e-start').value='';
+    q('#e-end').value='';
+    if(q('#e-mult')) q('#e-mult').value='';
+    if(q('#e-no-cut')) q('#e-no-cut').checked=false;
+    q('#e-note').value='';
     alert('บันทึกสำเร็จ');
   }
 
@@ -239,7 +306,7 @@
     filtered.sort((a,b)=> (a.date+a.start).localeCompare(b.date+b.start));
     for(const e of filtered){
       const mult = e.mult || weekdayMultiplier(e.date);
-      const {hoursNet} = computeHours(e.date, e.start, e.end);
+      const {hoursNet} = computeHoursFlexible(e);
       const pay = payFor(hoursNet, mult, settings.rate1);
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -254,6 +321,8 @@
       `;
       tb.appendChild(tr);
     }
+    renderHomeCalendar(monthEntries);
+
     tb.querySelectorAll('.btnDel').forEach(b=> b.addEventListener('click', ()=>{
       const id = b.dataset.id;
       const arr = loadEntries().filter(x=> String(x.id)!==String(id));
@@ -295,7 +364,7 @@
       const d = new Date(e.date+"T00:00:00");
       if(d.getFullYear()!==year) continue;
       const mult = e.mult || weekdayMultiplier(e.date);
-      const {hoursNet} = computeHours(e.date, e.start, e.end);
+      const {hoursNet} = computeHoursFlexible(e);
       monthHours[d.getMonth()] += hoursNet;
       totalH += hoursNet;
       totalPay += payFor(hoursNet, mult, settings.rate1);
