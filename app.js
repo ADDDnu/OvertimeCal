@@ -72,7 +72,7 @@
     for(let i=0;i<startDay;i++){ const c=document.createElement('div'); c.className='cell empty'; cal.appendChild(c); }
     const perDay={};
     for(const e of monthEntries){ const d=new Date(e.date+'T00:00:00'); const dd=d.getDate(); const {hoursNet}=computeHoursFlexible(e); perDay[dd]=(perDay[dd]||0)+hoursNet; }
-    for(let d=1; d<=dim; d++){ const c=document.createElement('div'); c.className='cell'; if(d===today.getDate()) c.classList.add('today'); const dn=document.createElement('div'); dn.className='d'; dn.textContent=d; const hv=document.createElement('div'); hv.className='h'; fmtNum(perDay[d]||0)+' ชม.'; c.appendChild(dn); c.appendChild(hv); cal.appendChild(c); }
+    for(let d=1; d<=dim; d++){ const c=document.createElement('div'); c.className='cell'; if(d===today.getDate()) c.classList.add('today'); const dn=document.createElement('div'); dn.className='d'; dn.textContent=d; const hv=document.createElement('div'); hv.className='h'; hv.textContent='OT '+fmtNum(perDay[d]||0)+' ชม.'; c.appendChild(dn); c.appendChild(hv); cal.appendChild(c); }
   }
 
   // ENTRY

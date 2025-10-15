@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OT App– คำนวณโอที</title>
+  <title>OT App v9 – คำนวณโอที</title>
   <link rel="icon" href="data:,">
   <meta name="theme-color" content="#eeeeee" />
   <link rel="stylesheet" href="style.css" />
@@ -15,12 +15,13 @@
       <div class="card">
         <h2>สรุปเดือนปัจจุบัน (<span id="home-month"></span>)</h2>
         <div class="grid">
-          <div class="card mini"><div class="label">ชั่วโมงรวม</div><div class="value" id="home-hours-total">0.00</div></div>
-          <div class="card mini"><div class="label">จำนวนเงินรวม</div><div class="value" id="home-pay-total">฿0</div>
+          <div class="card mini"><div class="label">ชั่วโมงรวม</div><div class="value" id="home-hours-total">0.00 h</div></div>
+          <div class="card mini"><div class="label">จำนวนเงินรวม</div><div class="value" id="home-pay-total">฿0</div><div class="muted small">อัตรา 1x=฿<span id="home-rate1"></span>, 1.5x=฿<span id="home-rate15"></span>, 3x=฿<span id="home-rate3"></span></div></div>
         </div>
       </div>
       <div class="card">
         <h2>ปฏิทินเวลาทำงาน (<span id="cal-month"></span>)</h2>
+        <div class="calendar-legend small muted">รวมชั่วโมง OT ของแต่ละวัน · สัปดาห์เริ่มวันอาทิตย์</div>
         <div class="calendar-grid" id="home-calendar"></div>
       </div>
       <div class="card">
@@ -47,7 +48,7 @@
             </select>
           </div>
           <div><label><input type="checkbox" id="e-continuous" /> ทำงานต่อเนื่อง (ไม่ตัด 30 นาที)</label></div>
-          <div><label><input type="checkbox" id="e-holiday" /> วันหยุดนักขัตฤกษ์ หรือ หยุดพิเศษ</label></div>
+          <div><label><input type="checkbox" id="e-holiday" /> วันหยุดนักขัตฤกษ์</label></div>
         </div>
         <div class="row" style="margin-top:10px">
           <button class="btn" id="e-save">บันทึก</button>
